@@ -1,0 +1,562 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amigo — שיחות עומק</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400;1,700&family=Heebo:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --cream: #f5f0e8;
+    --warm: #ede5d4;
+    --ink: #1a1612;
+    --brown: #6b4f3a;
+    --rust: #b85c38;
+    --muted: #8c7b6b;
+    --line: #d4c9b8;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--cream);
+    color: var(--ink);
+    font-family: 'Heebo', sans-serif;
+    font-weight: 300;
+    overflow-x: hidden;
+  }
+
+  /* Noise texture overlay */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.6;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    min-height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
+    padding: 0 clamp(24px, 6vw, 80px);
+    position: relative;
+    border-bottom: 1px solid var(--line);
+  }
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 32px 0 24px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .logo {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.6rem;
+    color: var(--ink);
+    letter-spacing: -0.5px;
+  }
+
+  .nav-tag {
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+
+  .hero-body {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 60px 0;
+    max-width: 780px;
+  }
+
+  .hero-eyebrow {
+    font-size: 0.75rem;
+    color: var(--rust);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 28px;
+    opacity: 0;
+    animation: rise 0.8s 0.1s ease forwards;
+  }
+
+  h1 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2.8rem, 7vw, 5.5rem);
+    line-height: 1.08;
+    font-weight: 700;
+    color: var(--ink);
+    margin-bottom: 32px;
+    opacity: 0;
+    animation: rise 0.9s 0.25s ease forwards;
+  }
+
+  h1 em {
+    font-style: italic;
+    color: var(--brown);
+  }
+
+  .hero-text {
+    font-size: clamp(1rem, 2vw, 1.15rem);
+    line-height: 1.8;
+    color: var(--muted);
+    max-width: 520px;
+    margin-bottom: 48px;
+    opacity: 0;
+    animation: rise 0.9s 0.4s ease forwards;
+  }
+
+  .cta-row {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    opacity: 0;
+    animation: rise 0.9s 0.55s ease forwards;
+  }
+
+  .btn-main {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--ink);
+    color: var(--cream);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+    padding: 16px 32px;
+    transition: all 0.25s;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .btn-main::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: var(--rust);
+    transform: translateX(101%);
+    transition: transform 0.3s ease;
+  }
+
+  .btn-main:hover::before { transform: translateX(0); }
+  .btn-main span { position: relative; z-index: 1; }
+
+  .btn-main svg { position: relative; z-index: 1; transition: transform 0.2s; }
+  .btn-main:hover svg { transform: translateX(-4px); }
+
+  .free-note {
+    font-size: 0.82rem;
+    color: var(--muted);
+  }
+
+  .free-note strong { color: var(--ink); font-weight: 500; }
+
+  /* Decorative line */
+  .hero-deco {
+    padding: 28px 0;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    opacity: 0;
+    animation: rise 1s 0.7s ease forwards;
+  }
+
+  .deco-line { flex: 1; height: 1px; background: var(--line); }
+  .deco-circle {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--rust);
+  }
+
+  /* ─── WHAT ─── */
+  .section {
+    padding: clamp(60px, 10vw, 120px) clamp(24px, 6vw, 80px);
+    border-bottom: 1px solid var(--line);
+  }
+
+  .section-label {
+    font-size: 0.72rem;
+    color: var(--rust);
+    letter-spacing: 3px;
+    text-transform: uppercase;
+    margin-bottom: 48px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .section-label::after {
+    content: '';
+    flex: 0 0 40px;
+    height: 1px;
+    background: var(--rust);
+  }
+
+  .what-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0;
+  }
+
+  .what-left {
+    padding-left: 48px;
+    border-left: 1px solid var(--line);
+  }
+
+  .what-right { padding-right: 48px; }
+
+  .what-right h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(1.8rem, 4vw, 2.8rem);
+    line-height: 1.2;
+    margin-bottom: 24px;
+  }
+
+  .what-right p {
+    font-size: 1rem;
+    color: var(--muted);
+    line-height: 1.9;
+    margin-bottom: 16px;
+  }
+
+  .what-left-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 32px;
+  }
+
+  .not-item {
+    padding-bottom: 32px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .not-item:last-child { border-bottom: none; padding-bottom: 0; }
+
+  .not-label {
+    font-size: 0.7rem;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .not-text {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.1rem;
+    font-style: italic;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  /* ─── FOR WHO ─── */
+  .for-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    margin-top: 8px;
+  }
+
+  .for-item {
+    background: var(--cream);
+    padding: 36px 28px;
+    transition: background 0.2s;
+  }
+
+  .for-item:hover { background: var(--warm); }
+
+  .for-num {
+    font-family: 'Playfair Display', serif;
+    font-size: 2rem;
+    color: var(--line);
+    margin-bottom: 16px;
+    display: block;
+  }
+
+  .for-title {
+    font-weight: 500;
+    font-size: 1rem;
+    margin-bottom: 10px;
+    color: var(--ink);
+  }
+
+  .for-desc {
+    font-size: 0.88rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  /* ─── HOW ─── */
+  .how-list {
+    display: grid;
+    gap: 0;
+    max-width: 640px;
+  }
+
+  .how-item {
+    display: grid;
+    grid-template-columns: 48px 1fr;
+    gap: 24px;
+    padding: 32px 0;
+    border-bottom: 1px solid var(--line);
+    align-items: start;
+  }
+
+  .how-item:first-child { padding-top: 0; }
+  .how-item:last-child { border-bottom: none; }
+
+  .how-n {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.4rem;
+    color: var(--line);
+    padding-top: 2px;
+  }
+
+  .how-content h3 {
+    font-weight: 500;
+    font-size: 1rem;
+    margin-bottom: 6px;
+    color: var(--ink);
+  }
+
+  .how-content p {
+    font-size: 0.9rem;
+    color: var(--muted);
+    line-height: 1.7;
+  }
+
+  .how-content .price-tag {
+    display: inline-block;
+    margin-top: 8px;
+    font-size: 0.78rem;
+    color: var(--rust);
+    border: 1px solid var(--rust);
+    padding: 2px 10px;
+  }
+
+  /* ─── CLOSING CTA ─── */
+  .closing {
+    padding: clamp(80px, 12vw, 140px) clamp(24px, 6vw, 80px);
+    text-align: center;
+    background: var(--ink);
+    color: var(--cream);
+  }
+
+  .closing h2 {
+    font-family: 'Playfair Display', serif;
+    font-size: clamp(2rem, 5vw, 3.8rem);
+    line-height: 1.15;
+    margin-bottom: 20px;
+    font-weight: 400;
+  }
+
+  .closing h2 em { font-style: italic; color: #c4a882; }
+
+  .closing p {
+    color: #9e8e7e;
+    font-size: 1rem;
+    margin-bottom: 48px;
+    max-width: 400px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.8;
+  }
+
+  .btn-light {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: transparent;
+    color: var(--cream);
+    border: 1px solid #4a3f35;
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    padding: 16px 36px;
+    transition: all 0.25s;
+    letter-spacing: 0.5px;
+  }
+
+  .btn-light:hover {
+    background: var(--rust);
+    border-color: var(--rust);
+  }
+
+  footer {
+    background: var(--ink);
+    border-top: 1px solid #2a2018;
+    padding: 20px clamp(24px, 6vw, 80px);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  footer .logo { font-size: 1.1rem; color: #6b5a4a; }
+  footer p { font-size: 0.75rem; color: #4a3f35; }
+
+  /* Animations */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(18px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* Responsive */
+  @media (max-width: 700px) {
+    .what-grid { grid-template-columns: 1fr; }
+    .what-left { padding-left: 0; border-left: none; border-top: 1px solid var(--line); padding-top: 40px; margin-top: 40px; }
+    .what-right { padding-right: 0; }
+    .for-grid { grid-template-columns: 1fr; }
+    .how-item { grid-template-columns: 36px 1fr; }
+    footer { flex-direction: column; gap: 8px; text-align: center; }
+  }
+</style>
+</head>
+<body>
+
+<!-- HERO -->
+<section class="hero">
+  <nav>
+    <span class="logo">amigo</span>
+    <span class="nav-tag">שיחות עומק</span>
+  </nav>
+
+  <div class="hero-body">
+    <p class="hero-eyebrow">שיחה אחת יכולה לשנות הכל</p>
+    <h1>המקום שבו<br>מותר לך <em>לחשוב<br>בקול רם</em></h1>
+    <p class="hero-text">
+      לפעמים אתה לא צריך עצות. אתה צריך מישהו שישאל את השאלה הנכונה — ויקשיב באמת.
+    </p>
+    <div class="cta-row">
+      <a href="https://wa.me/972502223102?text=היי, הגעתי מהאתר ואשמח לקבוע שיחה ראשונה" class="btn-main" target="_blank">
+        <span>לשיחה ראשונה בחינם</span>
+        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+          <path d="M10 8H3M7 5l-3 3 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </a>
+      <p class="free-note">השיחה הראשונה <strong>ללא עלות</strong></p>
+    </div>
+  </div>
+
+  <div class="hero-deco">
+    <div class="deco-line"></div>
+    <div class="deco-circle"></div>
+    <div class="deco-line"></div>
+  </div>
+</section>
+
+<!-- WHAT -->
+<section class="section">
+  <p class="section-label">מה זה</p>
+  <div class="what-grid">
+    <div class="what-right">
+      <h2>לא טיפול.<br>לא ייעוץ.<br>שיחה.</h2>
+      <p>
+        יש דברים שקשה לדבר עליהם עם חברים — כי הם ישפטו, ירצו לעזור מהר מדי, או שפשוט קשה להסביר.
+      </p>
+      <p>
+        כאן יש מישהו שיושב מולך, שואל שאלות שלא חשבת לשאול את עצמך, ומקשיב בלי אג'נדה.
+      </p>
+      <p>
+        בסוף שיחה טובה — לא קיבלת תשובות. גילית אותן.
+      </p>
+    </div>
+    <div class="what-left">
+      <div class="what-left-inner">
+        <div class="not-item">
+          <p class="not-label">לא</p>
+          <p class="not-text">פסיכולוג שרושם לך תרופות</p>
+        </div>
+        <div class="not-item">
+          <p class="not-label">לא</p>
+          <p class="not-text">קואוצ'ר שמוכר לך חיים טובים יותר</p>
+        </div>
+        <div class="not-item">
+          <p class="not-label">כן</p>
+          <p class="not-text" style="color: var(--rust)">מישהו שיושב איתך בתוך הדבר</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOR WHO -->
+<section class="section">
+  <p class="section-label">למי זה מתאים</p>
+  <div class="for-grid">
+    <div class="for-item">
+      <span class="for-num">01</span>
+      <p class="for-title">לפני החלטה גדולה</p>
+      <p class="for-desc">עבודה חדשה, מעבר דירה, פרידה, שינוי כיוון — כשאתה תקוע בין האפשרויות.</p>
+    </div>
+    <div class="for-item">
+      <span class="for-num">02</span>
+      <p class="for-title">אחרי משהו קשה</p>
+      <p class="for-desc">כשעברת משהו ועדיין לא עיבדת אותו באמת, ואתה צריך מקום לשים את זה.</p>
+    </div>
+    <div class="for-item">
+      <span class="for-num">03</span>
+      <p class="for-title">כשמשהו לא מסתדר</p>
+      <p class="for-desc">כשהחיים נראים בסדר מבחוץ אבל בפנים יש תחושה שמשהו לא במקום.</p>
+    </div>
+  </div>
+</section>
+
+<!-- HOW -->
+<section class="section">
+  <p class="section-label">איך זה עובד</p>
+  <div class="how-list">
+    <div class="how-item">
+      <span class="how-n">01</span>
+      <div class="how-content">
+        <h3>שולחים הודעת וואטסאפ</h3>
+        <p>כותבים כמה מילים על מה שמעסיק אתכם. לא צריך להסביר הכל — רק לפתוח דלת.</p>
+        <span class="price-tag">חינם</span>
+      </div>
+    </div>
+    <div class="how-item">
+      <span class="how-n">02</span>
+      <div class="how-content">
+        <h3>שיחה ראשונה — 30 דקות</h3>
+        <p>פגישה בזום או בטלפון. ללא עלות. כדי לראות אם יש כימיה ואם השיחה יכולה לתת ערך.</p>
+      </div>
+    </div>
+    <div class="how-item">
+      <span class="how-n">03</span>
+      <div class="how-content">
+        <h3>שיחות עומק — 60–90 דקות</h3>
+        <p>אם מרגישים שזה עובד — ממשיכים. כל שיחה היא עולם בפני עצמה.</p>
+        <span class="price-tag">₪150–300 לשיחה</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING CTA -->
+<section class="closing">
+  <h2>מתי בפעם האחרונה<br><em>מישהו באמת שאל אותך</em><br>איך אתה?</h2>
+  <p>השיחה הראשונה בחינם. ללא התחייבות.</p>
+  <a href="https://wa.me/972502223102?text=היי, הגעתי מהאתר ואשמח לקבוע שיחה ראשונה" class="btn-light" target="_blank">
+    דברו איתי בוואטסאפ
+  </a>
+</section>
+
+<footer>
+  <span class="logo">amigo</span>
+  <p>שיחות עומק · אמיגו</p>
+</footer>
+
+</body>
+</html>
